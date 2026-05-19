@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FEH Simulator — Web Build</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="feh-stage">
+    <div class="feh-frame" id="feh-frame">
+      <canvas id="canvas" width="320" height="240" tabindex="0"
+              oncontextmenu="event.preventDefault()"></canvas>
+      <div id="feh-loading" class="feh-overlay">
+        <div class="feh-spinner"></div>
+        <div class="feh-status" id="feh-status">Loading…</div>
+      </div>
+    </div>
+    <p class="feh-hint">Click the screen to give it focus. Keyboard input is captured while focused.</p>
+  </main>
+
+  <script src="game.js"></script>
+  <script>
+    (function () {
+      const canvas  = document.getElementById('canvas');
+      const overlay = document.getElementById('feh-loading');
+      const status  = document.getElementById('feh-status');
+
+      // Auto-focus the canvas on click so keyboard input flows in.
+      canvas.addEventListener('click', () => canvas.focus());
+
+      createFEHGame({
+        canvas: canvas,
+        print:    (t) => console.log(t),
+        printErr: (t) => console.warn(t),
+        setStatus: (t) => { status.textContent = t || ''; },
+        // Asyncify + while(1) means main() never returns, so the
+        // createFEHGame() promise never resolves. Hide the overlay
+        // as soon as the runtime is ready (just before main() runs).
+        onRuntimeInitialized: () => {
+          overlay.classList.add('hidden');
+          canvas.focus();
+        },
+      }).catch((err) => {
+        // Asyncify "unwinds" by throwing — that's expected, not an error.
+        if (err && /unwind/i.test(String(err.message || err))) return;
+        status.textContent = 'Failed to start: ' + err;
+        console.error(err);
+      });
+    })();
+  </script>
+</body>
+</html>

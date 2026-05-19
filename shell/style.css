@@ -1,0 +1,80 @@
+/* Standalone preview page styling. The embed shell ships its own minimal CSS. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #14171c;
+  color: #d8dee9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.feh-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.feh-frame {
+  position: relative;
+  background: #000;
+  border: 1px solid #2a2f38;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  /* Internal canvas is 320×240. Scale 3× for a sharp 960×720 display. */
+  width: 960px;
+  height: 720px;
+  max-width: 95vw;
+  max-height: calc(95vw * 3 / 4);
+  overflow: hidden;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  outline: none;
+}
+
+.feh-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: opacity 0.3s ease;
+}
+.feh-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.feh-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(255,255,255,0.15);
+  border-top-color: #88c0d0;
+  border-radius: 50%;
+  animation: feh-spin 0.9s linear infinite;
+}
+@keyframes feh-spin { to { transform: rotate(360deg); } }
+
+.feh-status {
+  font-size: 0.9rem;
+  color: #88c0d0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.feh-hint {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin: 0;
+}
