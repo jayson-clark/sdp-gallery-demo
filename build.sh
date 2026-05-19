@@ -3,10 +3,15 @@
 #
 # Usage:
 #   ./build.sh <path-to-student-project> [output-name]
+#   DEBUG=1 ./build.sh <path-to-student-project> [output-name]
 #
 # Example:
 #   ./build.sh ../cpp_template hello_world
 #   → outputs to web/dist/hello_world/
+#
+# DEBUG=1 turns on assertions, C++ exception catching, demangled stack traces,
+# and source-map symbols. The wasm is bigger and slower, but a crash gives you
+# a real backtrace instead of "RuntimeError: unreachable".
 #
 # Requirements:
 #   - Emscripten SDK active in shell (emcc on PATH).
@@ -47,7 +52,8 @@ echo
 make -C "$WEB_DIR" -f "$WEB_DIR/Makefile" \
     SRC_DIR="$SRC_DIR" \
     GAME="$GAME" \
-    OUT_DIR="$WEB_DIR/dist/$GAME"
+    OUT_DIR="$WEB_DIR/dist/$GAME" \
+    DEBUG="${DEBUG:-0}"
 
 echo
 echo "[web] To preview locally:"

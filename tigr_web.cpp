@@ -18,7 +18,12 @@
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
+// STB_IMAGE_STATIC keeps every stb_* symbol local to this translation unit.
+// Necessary because student projects (e.g. EcoToss) sometimes ship their own
+// copy of stb_image with STB_IMAGE_IMPLEMENTATION elsewhere — two extern
+// definitions of the same symbol would be a duplicate-symbol link error.
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_STATIC
 #define STBI_ONLY_PNG
 #define STBI_NO_STDIO
 #include "stb_image.h"
@@ -243,9 +248,11 @@ extern "C" void tigrUpdate(Tigr* b) {
     }
     // Clear "just-pressed" edges before yielding, so the next frame starts fresh.
     for (int i = 0; i < 8; i++) g_keys_pressed[i] = 0;
-    // Yield to the browser. With -sASYNCIFY this pauses the Wasm stack so the
-    // browser can run event loops, render, and dispatch input events.
-    emscripten_sleep(16); // ~60 fps
+    // Yield to the browser so it can render the canvas update we just posted
+    // and dispatch any pending input events. 0ms here means "as soon as
+    // possible" — we don't artificially cap the frame rate. A native game
+    // running at 200fps gets to run at 200fps on the web too.
+    emscripten_sleep(0);
 }
 
 extern "C" TPixel tigrGet(Tigr* b, int x, int y) {
