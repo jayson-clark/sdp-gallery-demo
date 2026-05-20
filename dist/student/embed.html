@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FEH Game</title>
+  <style>
+    /* Minimal embed shell — no chrome, just a fitting canvas. */
+    html, body { margin:0; padding:0; height:100%; background:#000; overflow:hidden; }
+    body { display:flex; align-items:center; justify-content:center; }
+    canvas {
+      /* Internal resolution stays 320×240; CSS scales to fit the iframe. */
+      width:  100%;
+      height: 100%;
+      max-width:  calc(100vh * 4 / 3);   /* preserve 4:3 aspect */
+      max-height: calc(100vw * 3 / 4);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+      background: #000;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="320" height="240" tabindex="0"
+          oncontextmenu="event.preventDefault()"></canvas>
+
+  <script src="game.js"></script>
+  <script>
+    // Auto-focus on any interaction so keyboard works without user instruction.
+    const canvas = document.getElementById('canvas');
+    ['click','touchstart','pointerdown'].forEach(ev =>
+      canvas.addEventListener(ev, () => canvas.focus()));
+
+    createFEHGame({ canvas })
+      .then(() => canvas.focus())
+      .catch((err) => {
+        document.body.innerHTML =
+          '<pre style="color:#f88;padding:1em;font:14px monospace">' +
+          'Failed to start: ' + (err && err.message ? err.message : err) +
+          '</pre>';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
