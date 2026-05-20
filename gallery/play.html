@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading… · FEH Game Gallery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="player-body">
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">FEH Simulator</a>
+    <div class="navbar-divider"></div>
+    <span class="navbar-subtitle" id="player-title">Loading…</span>
+    <div class="navbar-nav">
+      <a href="index.html">← Back to gallery</a>
+    </div>
+  </nav>
+
+  <main class="player-layout">
+    <section class="player-stage">
+      <div class="player-frame">
+        <iframe id="game-frame" title="game" allow="autoplay; gamepad"></iframe>
+      </div>
+      <p class="player-hint">Click the screen to give it focus. Keyboard input is captured while focused.</p>
+    </section>
+
+    <aside class="player-sidebar">
+      <h2 id="side-title"></h2>
+      <p id="side-tagline" class="player-tagline"></p>
+
+      <div class="side-meta">
+        <div>
+          <span class="meta-label">Authors</span>
+          <div id="side-authors" class="meta-value"></div>
+        </div>
+        <div>
+          <span class="meta-label">Semester</span>
+          <div id="side-semester" class="meta-value"></div>
+        </div>
+      </div>
+
+      <div id="side-tags" class="side-tags"></div>
+
+      <div class="side-section">
+        <h3>About</h3>
+        <p id="side-description"></p>
+      </div>
+
+      <div class="side-section" id="side-highlights-wrap" hidden>
+        <h3>Highlights</h3>
+        <ul id="side-highlights"></ul>
+      </div>
+
+      <div class="side-links">
+        <a id="side-website" class="btn btn-primary" target="_blank" rel="noopener" hidden>Team Website</a>
+        <a id="side-share"   class="btn btn-secondary" href="#">Copy embed snippet</a>
+      </div>
+    </aside>
+  </main>
+
+  <script src="games.js"></script>
+  <script>
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('game');
+      const game = (window.GALLERY || []).find(g => g.id === id && g.available);
+
+      if (!game) {
+        document.body.innerHTML =
+          '<main style="padding:3rem;text-align:center"><h1>Game not found</h1>' +
+          '<p><a href="index.html">← Back to gallery</a></p></main>';
+        return;
+      }
+
+      document.title = `${game.title} · FEH Game Gallery`;
+      document.getElementById('player-title').textContent = game.title;
+
+      document.getElementById('side-title').textContent = game.title;
+      document.getElementById('side-tagline').textContent = game.tagline || '';
+      document.getElementById('side-authors').textContent =
+        (game.authors || []).join(', ') || '—';
+      document.getElementById('side-semester').textContent = game.semester || '—';
+      document.getElementById('side-description').textContent = game.description || '';
+
+      const tagsEl = document.getElementById('side-tags');
+      (game.tags || []).forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'chip';
+        span.textContent = t;
+        tagsEl.appendChild(span);
+      });
+
+      if (game.highlights && game.highlights.length) {
+        const wrap = document.getElementById('side-highlights-wrap');
+        const ul = document.getElementById('side-highlights');
+        wrap.hidden = false;
+        game.highlights.forEach(h => {
+          const li = document.createElement('li');
+          li.textContent = h;
+          ul.appendChild(li);
+        });
+      }
+
+      if (game.website) {
+        const a = document.getElementById('side-website');
+        a.href = game.website;
+        a.hidden = false;
+      }
+
+      document.getElementById('side-share').addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = new URL(`../dist/${game.id}/embed.html`, location.href).href;
+        const snippet = `<iframe src="${url}" width="640" height="480" style="border:0" allow="autoplay"></iframe>`;
+        navigator.clipboard.writeText(snippet).then(() => {
+          const btn = e.currentTarget;
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = original; }, 1500);
+        });
+      });
+
+      document.getElementById('game-frame').src = `../dist/${game.id}/embed.html`;
+    })();
+  </script>
+</body>
+</html>

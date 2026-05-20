@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FEH Game Gallery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">FEH Simulator</a>
+    <div class="navbar-divider"></div>
+    <span class="navbar-subtitle">Student Game Gallery</span>
+    <div class="navbar-nav">
+      <a href="index.html">Games</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="toolbar">
+      <input type="search" id="search" class="toolbar-search"
+             placeholder="Search games, authors, tags…" autocomplete="off">
+      <select id="semester-filter" class="toolbar-select">
+        <option value="">All semesters</option>
+      </select>
+      <span id="result-count" class="toolbar-count"></span>
+    </div>
+
+    <section class="grid" id="grid"></section>
+    <p id="empty-state" class="empty-state" hidden>No games match your search.</p>
+  </main>
+
+  <script src="games.js"></script>
+  <script>
+    (function () {
+      const grid       = document.getElementById('grid');
+      const searchEl   = document.getElementById('search');
+      const semesterEl = document.getElementById('semester-filter');
+      const emptyEl    = document.getElementById('empty-state');
+      const countEl    = document.getElementById('result-count');
+
+      function placeholderThumb() {
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice">
+            <rect width="320" height="240" fill="#ececec"/>
+            <text x="160" y="125" text-anchor="middle"
+                  font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+                  font-size="14" letter-spacing="2"
+                  fill="#999">PLACEHOLDER THUMBNAIL</text>
+          </svg>`;
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+      }
+
+      function tagChips(tags) {
+        return (tags || []).map(t => `<span class="chip">${t}</span>`).join('');
+      }
+      function authorLine(authors) {
+        if (!authors || !authors.length) return '';
+        return 'by ' + authors.join(' · ');
+      }
+
+      function renderCard(game) {
+        const playable = !!game.available && !!game.id;
+        const href = playable ? `play.html?game=${encodeURIComponent(game.id)}` : '#';
+        const card = document.createElement(playable ? 'a' : 'div');
+        card.className = 'card' + (playable ? ' card-playable' : ' card-locked');
+        if (playable) card.href = href;
+        card.innerHTML = `
+          <div class="card-thumb" style="background-image:url('${placeholderThumb()}')"></div>
+          <div class="card-body">
+            <div class="card-title-row">
+              <h3>${game.title}</h3>
+              <span class="card-semester">${game.semester || ''}</span>
+            </div>
+            <p class="card-tagline">${game.tagline || ''}</p>
+            <div class="card-authors">${authorLine(game.authors)}</div>
+            <div class="card-tags">${tagChips(game.tags)}</div>
+          </div>
+        `;
+        return card;
+      }
+
+      const semesters = Array.from(new Set(
+        window.GALLERY.map(g => g.semester).filter(Boolean)
+      ));
+      semesters.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        semesterEl.appendChild(opt);
+      });
+
+      function matches(game, query, semester) {
+        if (semester && game.semester !== semester) return false;
+        if (!query) return true;
+        const haystack = [
+          game.title, game.tagline, game.description,
+          (game.authors || []).join(' '),
+          (game.tags    || []).join(' '),
+        ].join(' ').toLowerCase();
+        return query.toLowerCase().split(/\s+/).filter(Boolean)
+                    .every(term => haystack.includes(term));
+      }
+
+      function render() {
+        const q = searchEl.value.trim();
+        const sem = semesterEl.value;
+        const filtered = window.GALLERY.filter(g => matches(g, q, sem));
+        grid.innerHTML = '';
+        filtered.forEach(g => grid.appendChild(renderCard(g)));
+        emptyEl.hidden = filtered.length !== 0;
+        countEl.textContent =
+          `${filtered.length} of ${window.GALLERY.length} game${window.GALLERY.length === 1 ? '' : 's'}`;
+      }
+
+      searchEl.addEventListener('input', render);
+      semesterEl.addEventListener('change', render);
+      render();
+    })();
+  </script>
+</body>
+</html>
